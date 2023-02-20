@@ -1,4 +1,5 @@
 import { Community } from "@/src/atoms/communitiesAtom"
+import CommunityNotFound from "@/src/components/Community/CommunityNotFound"
 import { firestore } from "@/src/firebase/clientApp"
 import { doc, getDoc } from "firebase/firestore"
 import { GetServerSidePropsContext } from "next"
@@ -9,11 +10,14 @@ type CommunityPageProps = {
 }
 
 const ComunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
+  if (!communityData) {
+    return <CommunityNotFound />
+  }
   return <div>WELCOME TO {communityData.id}</div>
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-    console.log("aaa")
+  console.log("aaa")
   // get community data and pass it to client
   try {
     const communityDocRef = doc(firestore, "communities", context.query.communityId as string)
@@ -21,9 +25,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     return {
       props: {
-        communityData: JSON.parse(
-          safeJsonStringify({ id: communityDoc.id, ...communityDoc.data() })
-        ),
+        communityData: communityDoc.exists()
+          ? JSON.parse(safeJsonStringify({ id: communityDoc.id, ...communityDoc.data() }))
+          : "",
       },
     }
   } catch (error) {
