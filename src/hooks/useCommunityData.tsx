@@ -87,7 +87,7 @@ const useCommunityData = () => {
 
   const leaveCommunity = async (communityId: string) => {
     setLoading(true)
-    // barch write
+    // batch write
     /// delete a new community snippet from user
     /// update the numberOfMembers
     try {
