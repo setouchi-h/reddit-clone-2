@@ -5,7 +5,7 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { communityState } from "../atoms/communitiesAtom"
 import { Post, postState, PostVote } from "../atoms/postsAtom"
 import { auth, firestore, storage } from "../firebase/clientApp"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { authModalState } from "../atoms/authModalAtom"
 
 const usePosts = () => {
@@ -13,6 +13,7 @@ const usePosts = () => {
   const [postStateValue, setPostStateValue] = useRecoilState(postState)
   const currentCommunity = useRecoilValue(communityState).currentCommunity
   const setAuthModalState = useSetRecoilState(authModalState)
+  const [tempPost, setTempPost] = useState<Post | null>(null)
 
   const onVote = async (post: Post, vote: number, communityId: string) => {
     // Check for a user => if not, open auth modal
@@ -22,11 +23,12 @@ const usePosts = () => {
     }
 
     try {
-      const { voteStatus } = post
+      const { voteStatus } = tempPost || post
+
       const existingVote = postStateValue.postVotes.find((vote) => vote.postId === post.id)
 
       const batch = writeBatch(firestore)
-      const updatedPost = { ...post }
+      const updatedPost = { ...tempPost }
       const updatedPosts = [...postStateValue.posts]
       let updatedPostVotes = [...postStateValue.postVotes]
       let voteChange = vote
@@ -47,7 +49,6 @@ const usePosts = () => {
         // add/subtract 1 to/from post.voteStatus
         updatedPost.voteStatus = voteStatus + vote
         updatedPostVotes = [...updatedPostVotes, newVote]
-        console.log(updatedPostVotes)
       }
       // Existing vote - they have voted on the post before
       else {
@@ -87,12 +88,13 @@ const usePosts = () => {
 
       // update states with updated values
       const postIdx = postStateValue.postVotes.findIndex((item) => item.id === post.id)
-      updatedPosts[postIdx] = updatedPost
+      updatedPosts[postIdx] = updatedPost as Post
       setPostStateValue((prev) => ({
         ...prev,
         posts: updatedPosts,
         postVotes: updatedPostVotes,
       }))
+      setTempPost(updatedPost as Post)
 
       // update our post document
       const postRef = doc(firestore, "posts", post.id!)

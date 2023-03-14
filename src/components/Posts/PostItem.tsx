@@ -1,4 +1,4 @@
-import { Post } from "@/src/atoms/postsAtom"
+import { Post, postState } from "@/src/atoms/postsAtom"
 import {
   Flex,
   Icon,
@@ -22,7 +22,8 @@ import {
   IoArrowUpCircleSharp,
   IoBookmarkOutline,
 } from "react-icons/io5"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRecoilState } from "recoil"
 
 type PostItemProps = {
   post: Post
@@ -44,6 +45,21 @@ const PostItem: React.FC<PostItemProps> = ({
   const [loadingImage, setLoadingImage] = useState(true)
   const [loadingDelete, setLoadingDelete] = useState(false)
   const [error, setError] = useState(false)
+  const [voteStatus, setVoteStatus] = useState<number>(post.voteStatus || 0)
+
+  const handleVote = async (value: number) => {
+    let tempValue = value
+    // already voted
+    if (userVoteValue) {
+      if (userVoteValue === value) {
+        tempValue = -1 * value
+      } else {
+        tempValue = 2 * value
+      }
+    }
+    setVoteStatus(voteStatus + tempValue)
+    await onVote(post, value, post.communityId)
+  }
 
   const handleDelete = async () => {
     setLoadingDelete(true)
@@ -74,15 +90,15 @@ const PostItem: React.FC<PostItemProps> = ({
           as={userVoteValue === 1 ? IoArrowUpCircleSharp : IoArrowUpCircleOutline}
           color={userVoteValue === 1 ? "brand.100" : "gray.400"}
           fontSize={22}
-          onClick={() => onVote(post, 1, post.communityId)}
+          onClick={() => handleVote(1)}
           cursor="pointer"
         />
-        <Text fontSize="9pt">{post.voteStatus}</Text>
+        <Text fontSize="9pt">{voteStatus}</Text>
         <Icon
           as={userVoteValue === -1 ? IoArrowDownCircleSharp : IoArrowDownCircleOutline}
           color={userVoteValue === -1 ? "#4379ff" : "gray.400"}
           fontSize={22}
-          onClick={() => onVote(post, -1, post.communityId)}
+          onClick={() => handleVote(-1)}
           cursor="pointer"
         />
       </Flex>
