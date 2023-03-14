@@ -43,7 +43,9 @@ const About: React.FC<AboutProps> = ({ communityData }) => {
           imageURL: downloadURL,
         } as Community,
       }))
-    } catch (error) {}
+    } catch (error) {
+      console.log("onUpdateImage error:", error)
+    }
     setUploadingImage(false)
   }
 

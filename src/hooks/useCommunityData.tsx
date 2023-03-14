@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, increment, writeBatch } from "firebase/firestore"
+import { collection, doc, getDocs, increment, query, writeBatch } from "firebase/firestore"
 import { useEffect, useState } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { useRecoilState, useSetRecoilState } from "recoil"
@@ -30,12 +30,11 @@ const useCommunityData = () => {
   }
 
   const getMySnippets = async () => {
-    setLoading(true)
     try {
+      setLoading(true)
       // get users snippets
-      const snippetDocs = await getDocs(
-        collection(firestore, `users/${user?.uid}/communitySnippets`)
-      )
+      const snippetQuery = query(collection(firestore, `users/${user?.uid}/communitySnippets`))
+      const snippetDocs = await getDocs(snippetQuery)
 
       const snippets = snippetDocs.docs.map((doc) => ({ ...doc.data() }))
       setCommunityStateValue((prev) => ({
@@ -43,7 +42,7 @@ const useCommunityData = () => {
         mySnippets: snippets as CommunitySnippet[],
       }))
     } catch (error: any) {
-      console.log("getMySnippets", error)
+      console.log("getMySnippets: ", error)
       setError(error.message)
     }
     setLoading(false)
@@ -114,7 +113,13 @@ const useCommunityData = () => {
   }
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setCommunityStateValue((prev) => ({
+        ...prev,
+        mySnippets: [],
+      }))
+      return
+    }
     getMySnippets()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])

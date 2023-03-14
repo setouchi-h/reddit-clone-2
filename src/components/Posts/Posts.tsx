@@ -1,4 +1,4 @@
-import { Community } from "@/src/atoms/communitiesAtom"
+import { Community, communityState } from "@/src/atoms/communitiesAtom"
 import { Post } from "@/src/atoms/postsAtom"
 import { auth, firestore } from "@/src/firebase/clientApp"
 import usePosts from "@/src/hooks/usePosts"
@@ -6,6 +6,7 @@ import { Stack } from "@chakra-ui/react"
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore"
 import React, { useEffect, useState } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
+import { useRecoilState } from "recoil"
 import PostItem from "./PostItem"
 import PostLoader from "./PostLoader"
 
@@ -17,6 +18,7 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
   const [user] = useAuthState(auth)
   const [loading, setLoading] = useState(false)
   const { postStateValue, setPostStateValue, onVote, onDeletePost, onSelectPost } = usePosts()
+  const communityStateValue = useRecoilState(communityState)
 
   const getPosts = async () => {
     try {
@@ -36,7 +38,7 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
         posts: posts as Post[],
       }))
     } catch (error: any) {
-      console.log("getPosts error", error)
+      console.log("getPosts error:", error)
     }
     setLoading(false)
   }
@@ -44,7 +46,7 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
   useEffect(() => {
     getPosts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [communityData])
 
   return (
     <>
@@ -57,7 +59,9 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
               key={item.id}
               post={item}
               userIsCreator={user?.uid === item.creatorId}
-              userVoteValue={undefined}
+              userVoteValue={
+                postStateValue.postVotes.find((vote) => vote.postId === item.id)?.voteValue
+              }
               onVote={onVote}
               onSelectPost={onSelectPost}
               onDeletePost={onDeletePost}
