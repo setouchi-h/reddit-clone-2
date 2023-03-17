@@ -1,7 +1,11 @@
+import { Post } from "@/src/atoms/postsAtom"
+import About from "@/src/components/Community/About"
 import PageContent from "@/src/components/Layout/PageContent"
 import PostItem from "@/src/components/Posts/PostItem"
-import { auth } from "@/src/firebase/clientApp"
+import { auth, firestore } from "@/src/firebase/clientApp"
+import useCommunityData from "@/src/hooks/useCommunityData"
 import usePosts from "@/src/hooks/usePosts"
+import { doc, getDoc } from "firebase/firestore"
 import { useRouter } from "next/router"
 import { useEffect } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
@@ -10,13 +14,25 @@ const PostPage: React.FC = () => {
   const [user] = useAuthState(auth)
   const { postStateValue, setPostStateValue, onDeletePost, onVote } = usePosts()
   const router = useRouter()
+  const { communityStateValue } = useCommunityData()
 
-  const fetchPost = (postId: string) => {}
+  const fetchPost = async (postId: string) => {
+    try {
+      const postDocRef = doc(firestore, "posts", postId)
+      const postDoc = await getDoc(postDocRef)
+      setPostStateValue((prev) => ({
+        ...prev,
+        selectedPost: { id: postDoc.id, ...postDoc.data() } as Post,
+      }))
+    } catch (error) {
+      console.log("fetchPost error: ", error)
+    }
+  }
 
   useEffect(() => {
     const { pid } = router.query
 
-    if (pid && !postStateValue) {
+    if (pid && !postStateValue.selectedPost) {
       fetchPost(pid as string)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,7 +56,11 @@ const PostPage: React.FC = () => {
         )}
         {/* Comments */}
       </>
-      <>{/* About */}</>
+      <>
+        {communityStateValue.currentCommunity && (
+          <About communityData={communityStateValue.currentCommunity} />
+        )}
+      </>
     </PageContent>
   )
 }

@@ -6,6 +6,7 @@ import Header from "@/src/components/Community/Header"
 import PageContent from "@/src/components/Layout/PageContent"
 import Posts from "@/src/components/Posts/Posts"
 import { firestore } from "@/src/firebase/clientApp"
+import usePosts from "@/src/hooks/usePosts"
 import { doc, getDoc } from "firebase/firestore"
 import { GetServerSidePropsContext } from "next"
 import { useEffect } from "react"
@@ -18,6 +19,7 @@ type CommunityPageProps = {
 
 const ComunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
   const setCommunityStateValue = useSetRecoilState(communityState)
+  // const { postStateValue } = usePosts()
 
   useEffect(() => {
     setCommunityStateValue((prev) => ({

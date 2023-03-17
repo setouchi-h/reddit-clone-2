@@ -125,8 +125,8 @@ const usePosts = () => {
   const onSelectPost = async (post: Post) => {
     try {
       // get posts for this community
-      const postRef = doc(firestore, "posts", post.id as string)
-      const postDoc = await getDoc(postRef)
+      const postDocRef = doc(firestore, "posts", post.id as string)
+      const postDoc = await getDoc(postDocRef)
       // store in post state
       const newPost = { id: postDoc.id, ...postDoc.data() }
 
@@ -134,7 +134,7 @@ const usePosts = () => {
         ...prev,
         selectedPost: newPost as Post,
       }))
-      router.push(`/r/${post.communityId}/comments/${post.id})}`)
+      router.push(`/r/${post.communityId}/comments/${post.id}`)
     } catch (error: any) {
       console.log("onSelectPost error: ", error)
     }
