@@ -1,4 +1,13 @@
-import { collection, deleteDoc, doc, getDocs, query, where, writeBatch } from "firebase/firestore"
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+} from "firebase/firestore"
 import { deleteObject, ref } from "firebase/storage"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
@@ -7,15 +16,23 @@ import { Post, postState, PostVote } from "../atoms/postsAtom"
 import { auth, firestore, storage } from "../firebase/clientApp"
 import { useEffect, useState } from "react"
 import { authModalState } from "../atoms/authModalAtom"
+import { useRouter } from "next/router"
 
 const usePosts = () => {
   const [user] = useAuthState(auth)
+  const router = useRouter()
   const [postStateValue, setPostStateValue] = useRecoilState(postState)
   const currentCommunity = useRecoilValue(communityState).currentCommunity
   const setAuthModalState = useSetRecoilState(authModalState)
   const [tempPost, setTempPost] = useState<Post | null>(null)
 
-  const onVote = async (post: Post, vote: number, communityId: string) => {
+  const onVote = async (
+    event: React.MouseEvent<SVGElement, MouseEvent>,
+    post: Post,
+    vote: number,
+    communityId: string
+  ) => {
+    event.stopPropagation()
     // Check for a user => if not, open auth modal
     if (!user?.uid) {
       setAuthModalState({ open: true, view: "login" })
@@ -105,7 +122,23 @@ const usePosts = () => {
     }
   }
 
-  const onSelectPost = () => {}
+  const onSelectPost = async (post: Post) => {
+    try {
+      // get posts for this community
+      const postRef = doc(firestore, "posts", post.id as string)
+      const postDoc = await getDoc(postRef)
+      // store in post state
+      const newPost = { id: postDoc.id, ...postDoc.data() }
+
+      setPostStateValue((prev) => ({
+        ...prev,
+        selectedPost: newPost as Post,
+      }))
+      router.push(`/r/${post.communityId}/comments/${post.id})}`)
+    } catch (error: any) {
+      console.log("onSelectPost error: ", error)
+    }
+  }
 
   const onDeletePost = async (post: Post): Promise<boolean> => {
     try {
