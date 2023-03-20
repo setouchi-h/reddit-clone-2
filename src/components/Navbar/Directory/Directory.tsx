@@ -5,7 +5,7 @@ import Communities from "./Communities"
 
 const Directory: React.FC = () => {
   return (
-    <Menu>
+    <Menu isOpen={false}>
       <MenuButton
         cursor="pointer"
         padding="0px 6px"
