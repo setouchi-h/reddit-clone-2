@@ -1,5 +1,6 @@
 import { authModalState } from "@/src/atoms/authModalAtom"
 import { auth } from "@/src/firebase/clientApp"
+import useDirectory from "@/src/hooks/useDirectory"
 import { Flex, Icon, Input } from "@chakra-ui/react"
 import Link from "next/link"
 import { useRouter } from "next/router"
@@ -14,6 +15,7 @@ const CreatePostLink: React.FC = () => {
   const router = useRouter()
   const [user] = useAuthState(auth)
   const setAuthModalState = useSetRecoilState(authModalState)
+  const { toggleMenuOpen } = useDirectory()
 
   const onClick = () => {
     if (!user) {
@@ -21,7 +23,11 @@ const CreatePostLink: React.FC = () => {
       return
     }
     const { communityId } = router.query
-    router.push(`/r/${communityId}/submit`)
+    if (communityId) {
+      router.push(`/r/${communityId}/submit`)
+      return
+    }
+    toggleMenuOpen()
   }
 
   return (
