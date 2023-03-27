@@ -23,9 +23,12 @@ import {
   IoBookmarkOutline,
 } from "react-icons/io5"
 import { useEffect, useState } from "react"
-import { useRecoilState } from "recoil"
+import { useRecoilState, useSetRecoilState } from "recoil"
 import { useRouter } from "next/router"
 import Link from "next/link"
+import { useAuthState } from "react-firebase-hooks/auth"
+import { auth } from "@/src/firebase/clientApp"
+import { authModalState } from "@/src/atoms/authModalAtom"
 
 type PostItemProps = {
   post: Post
@@ -51,14 +54,24 @@ const PostItem: React.FC<PostItemProps> = ({
   onSelectPost,
   homePage,
 }) => {
+  const [user] = useAuthState(auth)
   const [loadingImage, setLoadingImage] = useState(true)
   const [loadingDelete, setLoadingDelete] = useState(false)
   const [error, setError] = useState(false)
   const [voteStatus, setVoteStatus] = useState<number>(post.voteStatus || 0)
+  const setAuthModalState = useSetRecoilState(authModalState)
   const router = useRouter()
   const singlePostPage = !onSelectPost
 
   const handleVote = async (event: React.MouseEvent<SVGElement, MouseEvent>, value: number) => {
+    event.stopPropagation()
+
+    // Check for a user => if not, open auth modal
+    if (!user?.uid) {
+      setAuthModalState({ open: true, view: "login" })
+      return
+    }
+
     let tempValue = value
     // already voted
     if (userVoteValue) {

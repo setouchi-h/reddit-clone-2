@@ -32,12 +32,12 @@ const usePosts = () => {
     vote: number,
     communityId: string
   ) => {
-    event.stopPropagation()
-    // Check for a user => if not, open auth modal
-    if (!user?.uid) {
-      setAuthModalState({ open: true, view: "login" })
-      return
-    }
+    // event.stopPropagation()
+    // // Check for a user => if not, open auth modal
+    // if (!user?.uid) {
+    //   setAuthModalState({ open: true, view: "login" })
+    //   return
+    // }
 
     try {
       const { voteStatus } = tempPost || post
