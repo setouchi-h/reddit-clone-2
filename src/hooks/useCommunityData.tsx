@@ -149,6 +149,7 @@ const useCommunityData = () => {
     if (communityId && !communityStateValue.currentCommunity) {
       getCommunityData(communityId as string)
     }
+    console.log(communityStateValue.currentCommunity)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query, communityStateValue.currentCommunity])
 

@@ -43,6 +43,7 @@ const useDirectory = () => {
         },
       }))
     }
+    console.log("aa")
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityStateValue.currentCommunity])

@@ -1,11 +1,11 @@
 import useDirectory from "@/src/hooks/useDirectory"
 import { ChevronDownIcon } from "@chakra-ui/icons"
 import { Flex, Menu, MenuButton, MenuList, Icon, Text, Image } from "@chakra-ui/react"
-import { TiHome } from "react-icons/ti"
 import Communities from "./Communities"
 
 const Directory: React.FC = () => {
   const { directoryState, toggleMenuOpen } = useDirectory()
+  console.log(directoryState)
 
   return (
     <Menu isOpen={directoryState.isOpen}>
