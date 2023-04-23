@@ -1,4 +1,5 @@
 import { auth, firestore } from "@/src/firebase/clientApp"
+import useDirectory from "@/src/hooks/useDirectory"
 import {
   Button,
   Modal,
@@ -17,6 +18,7 @@ import {
   Icon,
 } from "@chakra-ui/react"
 import { doc, getDoc, runTransaction, serverTimestamp, setDoc } from "firebase/firestore"
+import { useRouter } from "next/router"
 import { useState } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { BsFillEyeFill, BsFillPersonFill } from "react-icons/bs"
@@ -34,6 +36,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ open, handl
   const [communityType, setCommunityType] = useState("public")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { toggleMenuOpen } = useDirectory()
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.value.length > 21) return
@@ -90,6 +94,10 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ open, handl
           isModerator: true,
         })
       })
+
+      handleClose()
+      toggleMenuOpen()
+      router.push(`r/${communityName}`)
     } catch (error: any) {
       console.log("handleCreateCommunity error", error)
       setError(error.message)
