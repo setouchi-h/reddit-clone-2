@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { useRecoilValue } from "recoil"
 import { communityState } from "../atoms/communitiesAtom"
-import { Post } from "../atoms/postsAtom"
+import { Post, PostVote } from "../atoms/postsAtom"
 import CreatePostLink from "../components/Community/CreatePostLink"
 import PageContent from "../components/Layout/PageContent"
 import PostItem from "../components/Posts/PostItem"
@@ -42,7 +42,7 @@ const Home: NextPage = () => {
         buildNoUserHomeFeed()
       }
     } catch (error) {
-      console.log("buildUserHomeFeed", error)
+      console.log("buildUserHomeFeed: ", error)
     }
     setLoading(false)
   }
@@ -67,7 +67,27 @@ const Home: NextPage = () => {
     setLoading(false)
   }
 
-  const getUserPostVotes = () => {}
+  const getUserPostVotes = async () => {
+    try {
+      const postIds = postStateValue.posts.map((post) => post.id)
+      const postVotesQuery = query(
+        collection(firestore, `users/${user?.uid}/postVotes`),
+        where("postId", "in", postIds)
+      )
+      const postVoteDocs = await getDocs(postVotesQuery)
+      const postVotes = postVoteDocs.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+
+      setPostStateValue((prev) => ({
+        ...prev,
+        postVotes: postVotes as PostVote[],
+      }))
+    } catch (error) {
+      console.log("getUserPostVotes: ", error)
+    }
+  }
 
   // useEffects
   useEffect(() => {
@@ -79,6 +99,20 @@ const Home: NextPage = () => {
     if (!user && !loadingUser) buildNoUserHomeFeed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loadingUser])
+
+  useEffect(() => {
+    if (user && postStateValue.posts.length) getUserPostVotes()
+
+    // clean up func
+    /// run when dismount
+    return () => {
+      setPostStateValue((prev) => ({
+        ...prev,
+        postVotes: [],
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, postStateValue.posts])
 
   return (
     <PageContent>
